@@ -11,7 +11,18 @@ router.get('/', async (req, res) => {
     const [projects] = await db.query(
       'SELECT * FROM projects ORDER BY created_at DESC'
     );
-    res.json({ success: true, data: projects });
+    
+    // Convert snake_case to camelCase
+    const projectsFormatted = projects.map(p => ({
+      id: p.id,
+      name: p.name,
+      customer: p.customer,
+      value: p.value,
+      description: p.description,
+      createdAt: p.created_at
+    }));
+    
+    res.json({ success: true, data: projectsFormatted });
   } catch (error) {
     console.error('Get projects error:', error);
     res.status(500).json({ success: false, error: 'Gagal mengambil data proyek' });
@@ -49,7 +60,11 @@ router.put('/:id', async (req, res) => {
       [name, customer, value, description, id]
     );
 
-    res.json({ success: true, data: { id, name, customer, value, description } });
+    // Get createdAt from existing record
+    const [existing] = await db.query('SELECT created_at FROM projects WHERE id = ?', [id]);
+    const createdAt = existing[0]?.created_at || Date.now();
+
+    res.json({ success: true, data: { id, name, customer, value, description, createdAt } });
   } catch (error) {
     console.error('Update project error:', error);
     res.status(500).json({ success: false, error: 'Gagal update proyek' });

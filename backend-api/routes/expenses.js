@@ -20,7 +20,19 @@ router.get('/', async (req, res) => {
     query += ' ORDER BY date DESC';
 
     const [expenses] = await db.query(query, params);
-    res.json({ success: true, data: expenses });
+    
+    // Convert snake_case to camelCase
+    const expensesFormatted = expenses.map(e => ({
+      id: e.id,
+      projectId: e.project_id,
+      description: e.description,
+      amount: e.amount,
+      category: e.category,
+      date: e.date,
+      createdAt: e.created_at
+    }));
+    
+    res.json({ success: true, data: expensesFormatted });
   } catch (error) {
     console.error('Get expenses error:', error);
     res.status(500).json({ success: false, error: 'Gagal mengambil data pengeluaran' });
@@ -51,14 +63,22 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { description, amount, category, date } = req.body;
+    const { description, amount, category, date, projectId } = req.body;
 
     await db.query(
       'UPDATE expenses SET description = ?, amount = ?, category = ?, date = ? WHERE id = ?',
       [description, amount, category, date, id]
     );
 
-    res.json({ success: true, data: { id, description, amount, category, date } });
+    // Get existing data
+    const [existing] = await db.query('SELECT project_id, created_at FROM expenses WHERE id = ?', [id]);
+    const expenseProjectId = projectId || existing[0]?.project_id;
+    const createdAt = existing[0]?.created_at || Date.now();
+
+    res.json({ 
+      success: true, 
+      data: { id, projectId: expenseProjectId, description, amount, category, date, createdAt } 
+    });
   } catch (error) {
     console.error('Update expense error:', error);
     res.status(500).json({ success: false, error: 'Gagal update pengeluaran' });

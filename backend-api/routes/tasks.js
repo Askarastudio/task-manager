@@ -21,10 +21,15 @@ router.get('/', async (req, res) => {
 
     const [tasks] = await db.query(query, params);
     
+    // Convert snake_case to camelCase for frontend
     const tasksWithParsedUsers = tasks.map(task => ({
-      ...task,
+      id: task.id,
+      projectId: task.project_id,
+      title: task.title,
+      description: task.description,
       assignedUserIds: JSON.parse(task.assigned_user_ids || '[]'),
-      completed: !!task.completed
+      completed: !!task.completed,
+      createdAt: task.created_at
     }));
 
     res.json({ success: true, data: tasksWithParsedUsers });
@@ -58,14 +63,24 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, assignedUserIds, completed } = req.body;
+    const { title, description, assignedUserIds, completed, projectId } = req.body;
 
     await db.query(
       'UPDATE tasks SET title = ?, description = ?, assigned_user_ids = ?, completed = ? WHERE id = ?',
-      [title, description, JSON.stringify(assignedUserIds), completed, id]
+      [title, description, JSON.stringify(assignedUserIds || []), completed ? 1 : 0, id]
     );
 
-    res.json({ success: true, data: { id, title, description, assignedUserIds, completed } });
+    // Return data in camelCase format
+    const updatedTask = {
+      id,
+      projectId: projectId,
+      title,
+      description,
+      assignedUserIds: assignedUserIds || [],
+      completed: !!completed
+    };
+
+    res.json({ success: true, data: updatedTask });
   } catch (error) {
     console.error('Update task error:', error);
     res.status(500).json({ success: false, error: 'Gagal update task' });

@@ -12,7 +12,18 @@ router.get('/', async (req, res) => {
     const [users] = await db.query(
       'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC'
     );
-    res.json({ success: true, data: users });
+    
+    // Convert snake_case to camelCase
+    const usersFormatted = users.map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      password: '', // Don't send password to client
+      createdAt: u.created_at
+    }));
+    
+    res.json({ success: true, data: usersFormatted });
   } catch (error) {
     console.error('Get users error:', error);
     res.status(500).json({ success: false, error: 'Gagal mengambil data user' });
@@ -60,7 +71,14 @@ router.put('/:id', async (req, res) => {
 
     await db.query(query, params);
 
-    res.json({ success: true, data: { id, name, email, role } });
+    // Get createdAt
+    const [existing] = await db.query('SELECT created_at FROM users WHERE id = ?', [id]);
+    const createdAt = existing[0]?.created_at || Date.now();
+
+    res.json({ 
+      success: true, 
+      data: { id, name, email, role, password: '', createdAt } 
+    });
   } catch (error) {
     console.error('Update user error:', error);
     res.status(500).json({ success: false, error: 'Gagal update user' });
