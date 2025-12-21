@@ -265,12 +265,6 @@ function App() {
     const task = tasks.find(t => t.id === id)
     if (!task) return
 
-    // Optimistic update - update UI immediately
-    const updatedTask = { ...task, completed: !task.completed }
-    setTasks((current) =>
-      current.map((t) => t.id === id ? updatedTask : t)
-    )
-
     try {
       const response = await apiClient.updateTask(id, {
         ...task,
@@ -278,23 +272,14 @@ function App() {
       })
       
       if (response.success && response.data) {
-        // Confirm with server response
         setTasks((current) =>
           current.map((t) => t.id === id ? response.data! : t)
         )
         toast.success(response.data.completed ? "Task selesai!" : "Task dibuka kembali")
       } else {
-        // Revert on failure
-        setTasks((current) =>
-          current.map((t) => t.id === id ? task : t)
-        )
         toast.error(response.error || "Gagal mengubah status task")
       }
     } catch (error) {
-      // Revert on error
-      setTasks((current) =>
-        current.map((t) => t.id === id ? task : t)
-      )
       toast.error("Terjadi kesalahan")
     }
   }
