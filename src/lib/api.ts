@@ -7,8 +7,8 @@ import {
   AuthSession 
 } from './types'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-const USE_LOCAL_STORAGE = !API_BASE_URL || import.meta.env.VITE_APP_MODE === 'demo'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://apiproyek.ikuhub.com'
+const USE_LOCAL_STORAGE = import.meta.env.VITE_APP_MODE === 'demo' ? true : false
 
 interface ApiResponse<T> {
   success: boolean
