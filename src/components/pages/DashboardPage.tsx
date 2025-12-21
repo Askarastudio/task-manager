@@ -1,25 +1,27 @@
 import { FolderOpen, ListChecks, Users, TrendUp, ChartBar } from "@phosphor-icons/react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ProjectWithProgress } from "@/lib/types"
+import { ProjectWithProgress, Task, User, Expense } from "@/lib/types"
 import { formatCurrency } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 interface DashboardPageProps {
   projects: ProjectWithProgress[]
-  totalUsers: number
-  onNavigate: (page: string) => void
+  tasks: Task[]
+  users: User[]
+  expenses: Expense[]
 }
 
-export function DashboardPage({ projects, totalUsers, onNavigate }: DashboardPageProps) {
+export function DashboardPage({ projects, tasks, users, expenses }: DashboardPageProps) {
   const totalProjects = projects.length
   const activeProjects = projects.filter(p => p.status === 'On Progress').length
   const completedProjects = projects.filter(p => p.status === 'Selesai').length
-  const totalTasks = projects.reduce((sum, p) => sum + p.taskCount, 0)
+  const totalTasks = tasks.length
+  const totalUsers = users.length
 
-  const totalValue = projects.reduce((sum, p) => sum + p.value, 0)
-  const valuePerencanaan = projects.filter(p => p.status === 'Perencanaan').reduce((sum, p) => sum + p.value, 0)
-  const valueOnProgress = projects.filter(p => p.status === 'On Progress').reduce((sum, p) => sum + p.value, 0)
-  const valueSelesai = projects.filter(p => p.status === 'Selesai').reduce((sum, p) => sum + p.value, 0)
+  const totalValue = projects.reduce((sum, p) => sum + (p.value || 0), 0)
+  const valuePerencanaan = projects.filter(p => p.status === 'Perencanaan').reduce((sum, p) => sum + (p.value || 0), 0)
+  const valueOnProgress = projects.filter(p => p.status === 'On Progress').reduce((sum, p) => sum + (p.value || 0), 0)
+  const valueSelesai = projects.filter(p => p.status === 'Selesai').reduce((sum, p) => sum + (p.value || 0), 0)
 
   const chartData = [
     {
@@ -179,8 +181,7 @@ export function DashboardPage({ projects, totalUsers, onNavigate }: DashboardPag
                 {projects.slice(0, 5).map((project) => (
                   <div
                     key={project.id}
-                    className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => onNavigate('projects')}
+                    className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{project.name}</p>
