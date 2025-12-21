@@ -201,7 +201,9 @@ export function ProjectDetailDialog({
                 {tasks.map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-start gap-3 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors group"
+                    className={`flex items-start gap-3 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors group ${
+                      task.completed ? 'bg-muted/20' : ''
+                    }`}
                   >
                     <Checkbox
                       checked={task.completed}
@@ -209,11 +211,20 @@ export function ProjectDetailDialog({
                       className="mt-1"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className={`font-medium mb-1 ${task.completed ? 'line-through opacity-60' : ''}`}>
-                        {task.title}
-                      </p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className={`font-medium ${task.completed ? 'line-through opacity-60' : ''}`}>
+                          {task.title}
+                        </p>
+                        {task.completed && (
+                          <Badge variant="outline" className="bg-success/10 text-success border-success/20 text-xs">
+                            Selesai
+                          </Badge>
+                        )}
+                      </div>
                       {task.description && (
-                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                        <p className={`text-sm text-muted-foreground mb-2 line-clamp-2 ${
+                          task.completed ? 'line-through opacity-50' : ''
+                        }`}>
                           {task.description}
                         </p>
                       )}
