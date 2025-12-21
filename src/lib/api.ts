@@ -8,7 +8,8 @@ import {
 } from './types'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://apiproyek.ikuhub.com'
-const USE_LOCAL_STORAGE = import.meta.env.VITE_APP_MODE === 'demo' ? true : false
+// Force production mode - always use backend API
+const USE_LOCAL_STORAGE = false
 
 interface ApiResponse<T> {
   success: boolean
