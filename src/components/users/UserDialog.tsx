@@ -10,7 +10,7 @@ interface UserDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   user?: User | null
-  onSave: (user: Omit<User, 'id' | 'createdAt'>) => void
+  onSave: (user: Omit<User, 'userId' | 'createdAt'>) => void
 }
 
 const DEFAULT_PASSWORD = "Ikuhub@2025"
@@ -41,7 +41,7 @@ export function UserDialog({ open, onOpenChange, user, onSave }: UserDialogProps
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    const userData: Omit<User, 'id' | 'createdAt'> = {
+    const userData: Omit<User, 'userId' | 'createdAt'> = {
       name,
       email,
       role,

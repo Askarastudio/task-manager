@@ -8,6 +8,7 @@ const projectRoutes = require('./routes/projects');
 const taskRoutes = require('./routes/tasks');
 const expenseRoutes = require('./routes/expenses');
 const companyRoutes = require('./routes/company');
+const reportRoutes = require('./routes/reports');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,7 @@ app.use('/projects', projectRoutes);
 app.use('/tasks', taskRoutes);
 app.use('/expenses', expenseRoutes);
 app.use('/company', companyRoutes);
+app.use('/reports', reportRoutes);
 
 app.get('/', (req, res) => {
   res.json({ 

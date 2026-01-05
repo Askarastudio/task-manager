@@ -7,24 +7,16 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function calculateProjectProgress(project: Project, tasks: Task[]): ProjectWithProgress {
-  const projectTasks = tasks.filter(task => task.projectId === project.id)
+  const projectTasks = tasks.filter(task => task.projectId === project.projectId)
   const completedTasks = projectTasks.filter(task => task.completed)
   
   const progress = projectTasks.length === 0 
     ? 0 
     : Math.round((completedTasks.length / projectTasks.length) * 100)
   
-  let status: ProjectStatus = 'Perencanaan'
-  if (progress === 100) {
-    status = 'Selesai'
-  } else if (progress > 0) {
-    status = 'On Progress'
-  }
-  
   return {
     ...project,
     progress,
-    status,
     taskCount: projectTasks.length,
     completedTaskCount: completedTasks.length,
   }
@@ -32,12 +24,14 @@ export function calculateProjectProgress(project: Project, tasks: Task[]): Proje
 
 export function getStatusColor(status: ProjectStatus): string {
   switch (status) {
-    case 'Perencanaan':
+    case 'pending':
       return 'bg-muted text-muted-foreground'
-    case 'On Progress':
+    case 'in-progress':
       return 'bg-info/10 text-info border-info/20'
-    case 'Selesai':
+    case 'completed':
       return 'bg-success/10 text-success border-success/20'
+    case 'onhold':
+      return 'bg-warning/10 text-warning border-warning/20'
   }
 }
 

@@ -7,8 +7,8 @@ import { Task } from "@/lib/types"
 
 interface TaskCardProps {
   task: Task
-  onToggle: (id: string) => void
-  onDelete: (id: string) => void
+  onToggle: (id: number) => void
+  onDelete: (id: number) => void
 }
 
 export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
@@ -23,14 +23,14 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
       <Card className="p-4 hover:shadow-md transition-shadow duration-100 group">
         <div className="flex items-start gap-3">
           <Checkbox
-            id={task.id}
+            id={task.taskId.toString()}
             checked={task.completed}
-            onCheckedChange={() => onToggle(task.id)}
+            onCheckedChange={() => onToggle(task.taskId)}
             className="mt-1"
           />
           <div className="flex-1 min-w-0">
             <motion.label
-              htmlFor={task.id}
+              htmlFor={task.taskId.toString()}
               className={`block text-base cursor-pointer transition-all duration-300 ${
                 task.completed
                   ? "line-through opacity-50"
@@ -44,7 +44,7 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onDelete(task.id)}
+            onClick={() => onDelete(task.taskId)}
             className="opacity-0 group-hover:opacity-100 transition-opacity duration-100 h-8 w-8 text-muted-foreground hover:text-destructive"
           >
             <Trash size={18} />

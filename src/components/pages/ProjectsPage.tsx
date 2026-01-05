@@ -14,16 +14,16 @@ interface ProjectsPageProps {
   tasks: Task[]
   users: User[]
   expenses: Expense[]
-  onCreateProject: (project: Omit<Project, 'id' | 'createdAt'>) => void
-  onUpdateProject: (id: string, project: Omit<Project, 'id' | 'createdAt'>) => void
-  onDeleteProject: (id: string) => void
-  onCreateTask: (task: Omit<Task, 'id' | 'createdAt'>) => void
-  onUpdateTask: (id: string, task: Omit<Task, 'id' | 'createdAt'>) => void
-  onDeleteTask: (id: string) => void
-  onToggleTask: (id: string) => void
-  onCreateExpense: (expense: Omit<Expense, 'id' | 'createdAt'>) => void
-  onUpdateExpense: (id: string, expense: Omit<Expense, 'id' | 'createdAt'>) => void
-  onDeleteExpense: (id: string) => void
+  onCreateProject: (project: Omit<Project, 'projectId' | 'createdAt'>) => void
+  onUpdateProject: (id: number, project: Omit<Project, 'projectId' | 'createdAt'>) => void
+  onDeleteProject: (id: number) => void
+  onCreateTask: (task: Omit<Task, 'taskId' | 'createdAt'>) => void
+  onUpdateTask: (id: number, task: Omit<Task, 'taskId' | 'createdAt'>) => void
+  onDeleteTask: (id: number) => void
+  onToggleTask: (id: number) => void
+  onCreateExpense: (expense: Omit<Expense, 'expenseId' | 'createdAt'>) => void
+  onUpdateExpense: (id: number, expense: Omit<Expense, 'expenseId' | 'createdAt'>) => void
+  onDeleteExpense: (id: number) => void
 }
 
 export function ProjectsPage({
@@ -62,9 +62,9 @@ export function ProjectsPage({
     setDetailDialogOpen(true)
   }
 
-  const handleSave = (projectData: Omit<Project, 'id' | 'createdAt'>) => {
+  const handleSave = (projectData: Omit<Project, 'projectId' | 'createdAt'>) => {
     if (editingProject) {
-      onUpdateProject(editingProject.id, projectData)
+      onUpdateProject(editingProject.projectId, projectData)
     } else {
       onCreateProject(projectData)
     }
@@ -104,7 +104,7 @@ export function ProjectsPage({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <Card key={project.id} className="hover:shadow-lg transition-shadow">
+            <Card key={project.projectId} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
                   <CardTitle className="text-lg line-clamp-2">{project.name}</CardTitle>
@@ -112,7 +112,7 @@ export function ProjectsPage({
                     {project.status}
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">{project.customer}</p>
+                <p className="text-sm text-muted-foreground">{project.description}</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -131,8 +131,8 @@ export function ProjectsPage({
                 </div>
 
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Nilai Proyek</p>
-                  <p className="font-semibold text-lg">{formatCurrency(project.value)}</p>
+                  <p className="text-sm text-muted-foreground mb-1">Anggaran Proyek</p>
+                  <p className="font-semibold text-lg">{formatCurrency(project.budget || 0)}</p>
                 </div>
 
                 <div className="flex gap-2 pt-2">
@@ -143,7 +143,7 @@ export function ProjectsPage({
                   <Button variant="outline" size="sm" onClick={() => handleEdit(project)} className="gap-1">
                     <Pencil size={16} />
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => onDeleteProject(project.id)} className="gap-1 text-destructive hover:text-destructive">
+                  <Button variant="outline" size="sm" onClick={() => onDeleteProject(project.projectId)} className="gap-1 text-destructive hover:text-destructive">
                     <Trash size={16} />
                   </Button>
                 </div>
@@ -165,8 +165,8 @@ export function ProjectsPage({
           open={detailDialogOpen}
           onOpenChange={setDetailDialogOpen}
           project={viewingProject}
-          tasks={tasks.filter(t => t.projectId === viewingProject.id)}
-          expenses={expenses.filter(e => e.projectId === viewingProject.id)}
+          tasks={tasks.filter(t => t.projectId === viewingProject.projectId)}
+          expenses={expenses.filter(e => e.projectId === viewingProject.projectId)}
           users={users}
           onCreateTask={onCreateTask}
           onUpdateTask={onUpdateTask}

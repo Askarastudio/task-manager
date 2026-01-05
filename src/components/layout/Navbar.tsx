@@ -1,22 +1,26 @@
-import { House, FolderOpen, Users, Buildings, SignOut, List, X } from "@phosphor-icons/react"
+import { House, FolderOpen, Users, Buildings, SignOut, List, X, ChartBar } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { AuthSession } from "@/lib/types"
 
 interface NavbarProps {
+  session: AuthSession
+  companyName: string
   currentPage: string
   onNavigate: (page: string) => void
   onLogout: () => void
   companyLogo?: string
 }
 
-export function Navbar({ currentPage, onNavigate, onLogout, companyLogo }: NavbarProps) {
+export function Navbar({ session, companyName, currentPage, onNavigate, onLogout, companyLogo }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: House },
     { id: 'projects', label: 'Proyek', icon: FolderOpen },
+    { id: 'reports', label: 'Laporan', icon: ChartBar },
     { id: 'users', label: 'Pengguna', icon: Users },
     { id: 'company', label: 'Pengaturan', icon: Buildings },
   ]

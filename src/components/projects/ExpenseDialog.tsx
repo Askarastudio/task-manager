@@ -11,7 +11,7 @@ interface ExpenseDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   expense: Expense | null
-  onSave: (expense: Omit<Expense, 'id' | 'createdAt' | 'projectId'>) => void
+  onSave: (expense: Omit<Expense, 'expenseId' | 'createdAt' | 'projectId'>) => void
 }
 
 export function ExpenseDialog({ open, onOpenChange, expense, onSave }: ExpenseDialogProps) {

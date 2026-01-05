@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Task, User } from "@/lib/types"
 
 interface TaskDialogProps {
@@ -12,29 +12,29 @@ interface TaskDialogProps {
   onOpenChange: (open: boolean) => void
   task?: Task | null
   users: User[]
-  onSave: (task: Omit<Task, 'id' | 'createdAt'>) => void
+  onSave: (task: Omit<Task, 'taskId' | 'createdAt'>) => void
 }
 
 export function TaskDialog({ open, onOpenChange, task, users, onSave }: TaskDialogProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [assignedUserIds, setAssignedUserIds] = useState<string[]>([])
+  const [assignedTo, setAssignedTo] = useState<number | undefined>(undefined)
   const [completed, setCompleted] = useState(false)
-  const [projectId, setProjectId] = useState("")
+  const [projectId, setProjectId] = useState<number>(0)
 
   useEffect(() => {
     if (task) {
       setTitle(task.title)
       setDescription(task.description)
-      setAssignedUserIds(task.assignedUserIds)
+      setAssignedTo(task.assignedTo)
       setCompleted(task.completed)
       setProjectId(task.projectId)
     } else {
       setTitle("")
       setDescription("")
-      setAssignedUserIds([])
+      setAssignedTo(undefined)
       setCompleted(false)
-      setProjectId("")
+      setProjectId(0)
     }
   }, [task, open])
 
@@ -44,7 +44,7 @@ export function TaskDialog({ open, onOpenChange, task, users, onSave }: TaskDial
       projectId,
       title,
       description,
-      assignedUserIds,
+      assignedTo,
       completed,
     })
   }
@@ -85,28 +85,23 @@ export function TaskDialog({ open, onOpenChange, task, users, onSave }: TaskDial
             />
           </div>
           <div className="space-y-2">
-            <Label>Assign ke User</Label>
-            <div className="border border-border rounded-lg p-4 space-y-2 max-h-48 overflow-y-auto">
-              {users.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Belum ada user tersedia</p>
-              ) : (
-                users.map((user) => (
-                  <div key={user.id} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`user-${user.id}`}
-                      checked={assignedUserIds.includes(user.id)}
-                      onCheckedChange={() => toggleUserAssignment(user.id)}
-                    />
-                    <Label
-                      htmlFor={`user-${user.id}`}
-                      className="flex-1 cursor-pointer text-sm font-normal"
-                    >
-                      {user.name} ({user.email})
-                    </Label>
-                  </div>
-                ))
-              )}
-            </div>
+            <Label htmlFor="task-assignee">Assign ke User</Label>
+            <Select 
+              value={assignedTo?.toString() || ""} 
+              onValueChange={(v) => setAssignedTo(v ? parseInt(v) : undefined)}
+            >
+              <SelectTrigger id="task-assignee">
+                <SelectValue placeholder="Pilih user" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Tidak ada</SelectItem>
+                {users.map((user) => (
+                  <SelectItem key={user.userId} value={user.userId.toString()}>
+                    {user.name} ({user.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

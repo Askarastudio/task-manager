@@ -4,7 +4,8 @@ import {
   Task, 
   Expense, 
   CompanySettings, 
-  AuthSession 
+  AuthSession,
+  ReportData
 } from './types'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://apiproyek.ikuhub.com'
@@ -100,21 +101,21 @@ class ApiClient {
     return this.request<User[]>('/users')
   }
 
-  async createUser(userData: Omit<User, 'id' | 'createdAt'>): Promise<ApiResponse<User>> {
+  async createUser(userData: Omit<User, 'userId' | 'createdAt'>): Promise<ApiResponse<User>> {
     return this.request<User>('/users', {
       method: 'POST',
       body: JSON.stringify(userData),
     })
   }
 
-  async updateUser(id: string, userData: Partial<User>): Promise<ApiResponse<User>> {
+  async updateUser(id: number, userData: Partial<User>): Promise<ApiResponse<User>> {
     return this.request<User>(`/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(userData),
     })
   }
 
-  async deleteUser(id: string): Promise<ApiResponse<void>> {
+  async deleteUser(id: number): Promise<ApiResponse<void>> {
     return this.request<void>(`/users/${id}`, {
       method: 'DELETE',
     })
@@ -124,71 +125,71 @@ class ApiClient {
     return this.request<Project[]>('/projects')
   }
 
-  async createProject(projectData: Omit<Project, 'id' | 'createdAt'>): Promise<ApiResponse<Project>> {
+  async createProject(projectData: Omit<Project, 'projectId' | 'createdAt'>): Promise<ApiResponse<Project>> {
     return this.request<Project>('/projects', {
       method: 'POST',
       body: JSON.stringify(projectData),
     })
   }
 
-  async updateProject(id: string, projectData: Partial<Project>): Promise<ApiResponse<Project>> {
+  async updateProject(id: number, projectData: Partial<Project>): Promise<ApiResponse<Project>> {
     return this.request<Project>(`/projects/${id}`, {
       method: 'PUT',
       body: JSON.stringify(projectData),
     })
   }
 
-  async deleteProject(id: string): Promise<ApiResponse<void>> {
+  async deleteProject(id: number): Promise<ApiResponse<void>> {
     return this.request<void>(`/projects/${id}`, {
       method: 'DELETE',
     })
   }
 
-  async getTasks(projectId?: string): Promise<ApiResponse<Task[]>> {
+  async getTasks(projectId?: number): Promise<ApiResponse<Task[]>> {
     const query = projectId ? `?projectId=${projectId}` : ''
     return this.request<Task[]>(`/tasks${query}`)
   }
 
-  async createTask(taskData: Omit<Task, 'id' | 'createdAt'>): Promise<ApiResponse<Task>> {
+  async createTask(taskData: Omit<Task, 'taskId' | 'createdAt'>): Promise<ApiResponse<Task>> {
     return this.request<Task>('/tasks', {
       method: 'POST',
       body: JSON.stringify(taskData),
     })
   }
 
-  async updateTask(id: string, taskData: Partial<Task>): Promise<ApiResponse<Task>> {
+  async updateTask(id: number, taskData: Partial<Task>): Promise<ApiResponse<Task>> {
     return this.request<Task>(`/tasks/${id}`, {
       method: 'PUT',
       body: JSON.stringify(taskData),
     })
   }
 
-  async deleteTask(id: string): Promise<ApiResponse<void>> {
+  async deleteTask(id: number): Promise<ApiResponse<void>> {
     return this.request<void>(`/tasks/${id}`, {
       method: 'DELETE',
     })
   }
 
-  async getExpenses(projectId?: string): Promise<ApiResponse<Expense[]>> {
+  async getExpenses(projectId?: number): Promise<ApiResponse<Expense[]>> {
     const query = projectId ? `?projectId=${projectId}` : ''
     return this.request<Expense[]>(`/expenses${query}`)
   }
 
-  async createExpense(expenseData: Omit<Expense, 'id' | 'createdAt'>): Promise<ApiResponse<Expense>> {
+  async createExpense(expenseData: Omit<Expense, 'expenseId' | 'createdAt'>): Promise<ApiResponse<Expense>> {
     return this.request<Expense>('/expenses', {
       method: 'POST',
       body: JSON.stringify(expenseData),
     })
   }
 
-  async updateExpense(id: string, expenseData: Partial<Expense>): Promise<ApiResponse<Expense>> {
+  async updateExpense(id: number, expenseData: Partial<Expense>): Promise<ApiResponse<Expense>> {
     return this.request<Expense>(`/expenses/${id}`, {
       method: 'PUT',
       body: JSON.stringify(expenseData),
     })
   }
 
-  async deleteExpense(id: string): Promise<ApiResponse<void>> {
+  async deleteExpense(id: number): Promise<ApiResponse<void>> {
     return this.request<void>(`/expenses/${id}`, {
       method: 'DELETE',
     })
@@ -203,6 +204,14 @@ class ApiClient {
       method: 'PUT',
       body: JSON.stringify(settings),
     })
+  }
+
+  async getReports(period: 'all' | 'month' | 'quarter' | 'year' = 'month'): Promise<ApiResponse<ReportData>> {
+    return this.request<ReportData>(`/reports?period=${period}`)
+  }
+
+  async getProjectReport(projectId: number): Promise<ApiResponse<any>> {
+    return this.request<any>(`/reports/project/${projectId}`)
   }
 }
 

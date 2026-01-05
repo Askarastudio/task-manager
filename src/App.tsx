@@ -17,6 +17,7 @@ import { DashboardPage } from "@/components/pages/DashboardPage"
 import { ProjectsPage } from "@/components/pages/ProjectsPage"
 import { UsersPage } from "@/components/pages/UsersPage"
 import { CompanyPage } from "@/components/pages/CompanyPage"
+import { ReportsPage } from "@/components/pages/ReportsPage"
 
 function App() {
   // Session management
@@ -125,7 +126,7 @@ function App() {
   }
 
   // User CRUD handlers
-  const handleCreateUser = async (userData: Omit<User, 'id' | 'createdAt'>) => {
+  const handleCreateUser = async (userData: Omit<User, 'userId' | 'createdAt'>) => {
     try {
       const response = await apiClient.createUser(userData)
       if (response.success && response.data) {
@@ -139,12 +140,12 @@ function App() {
     }
   }
 
-  const handleUpdateUser = async (id: string, userData: Omit<User, 'id' | 'createdAt'>) => {
+  const handleUpdateUser = async (id: number, userData: Omit<User, 'userId' | 'createdAt'>) => {
     try {
       const response = await apiClient.updateUser(id, userData)
       if (response.success && response.data) {
         setUsers((current) =>
-          current.map((user) => user.id === id ? response.data! : user)
+          current.map((user) => user.userId === id ? response.data! : user)
         )
         toast.success("User berhasil diperbarui")
       } else {
@@ -155,11 +156,11 @@ function App() {
     }
   }
 
-  const handleDeleteUser = async (id: string) => {
+  const handleDeleteUser = async (id: number) => {
     try {
       const response = await apiClient.deleteUser(id)
       if (response.success) {
-        setUsers((current) => current.filter((user) => user.id !== id))
+        setUsers((current) => current.filter((user) => user.userId !== id))
         toast.info("User berhasil dihapus")
       } else {
         toast.error(response.error || "Gagal menghapus user")
@@ -170,7 +171,7 @@ function App() {
   }
 
   // Project CRUD handlers
-  const handleCreateProject = async (projectData: Omit<Project, 'id' | 'createdAt'>) => {
+  const handleCreateProject = async (projectData: Omit<Project, 'projectId' | 'createdAt'>) => {
     try {
       const response = await apiClient.createProject(projectData)
       if (response.success && response.data) {
@@ -184,12 +185,12 @@ function App() {
     }
   }
 
-  const handleUpdateProject = async (id: string, projectData: Omit<Project, 'id' | 'createdAt'>) => {
+  const handleUpdateProject = async (id: number, projectData: Omit<Project, 'projectId' | 'createdAt'>) => {
     try {
       const response = await apiClient.updateProject(id, projectData)
       if (response.success && response.data) {
         setProjects((current) =>
-          current.map((project) => project.id === id ? response.data! : project)
+          current.map((project) => project.projectId === id ? response.data! : project)
         )
         toast.success("Proyek berhasil diperbarui")
       } else {
@@ -200,11 +201,11 @@ function App() {
     }
   }
 
-  const handleDeleteProject = async (id: string) => {
+  const handleDeleteProject = async (id: number) => {
     try {
       const response = await apiClient.deleteProject(id)
       if (response.success) {
-        setProjects((current) => current.filter((project) => project.id !== id))
+        setProjects((current) => current.filter((project) => project.projectId !== id))
         setTasks((current) => current.filter((task) => task.projectId !== id))
         setExpenses((current) => current.filter((expense) => expense.projectId !== id))
         toast.info("Proyek dan data terkait berhasil dihapus")
@@ -217,7 +218,7 @@ function App() {
   }
 
   // Task CRUD handlers
-  const handleCreateTask = async (taskData: Omit<Task, 'id' | 'createdAt'>) => {
+  const handleCreateTask = async (taskData: Omit<Task, 'taskId' | 'createdAt'>) => {
     try {
       const response = await apiClient.createTask(taskData)
       if (response.success && response.data) {
@@ -231,12 +232,12 @@ function App() {
     }
   }
 
-  const handleUpdateTask = async (id: string, taskData: Omit<Task, 'id' | 'createdAt'>) => {
+  const handleUpdateTask = async (id: number, taskData: Omit<Task, 'taskId' | 'createdAt'>) => {
     try {
       const response = await apiClient.updateTask(id, taskData)
       if (response.success && response.data) {
         setTasks((current) =>
-          current.map((task) => task.id === id ? response.data! : task)
+          current.map((task) => task.taskId === id ? response.data! : task)
         )
         toast.success("Task berhasil diperbarui")
       } else {
@@ -247,11 +248,11 @@ function App() {
     }
   }
 
-  const handleDeleteTask = async (id: string) => {
+  const handleDeleteTask = async (id: number) => {
     try {
       const response = await apiClient.deleteTask(id)
       if (response.success) {
-        setTasks((current) => current.filter((task) => task.id !== id))
+        setTasks((current) => current.filter((task) => task.taskId !== id))
         toast.info("Task berhasil dihapus")
       } else {
         toast.error(response.error || "Gagal menghapus task")
@@ -261,14 +262,14 @@ function App() {
     }
   }
 
-  const handleToggleTask = async (id: string) => {
-    const task = tasks.find(t => t.id === id)
+  const handleToggleTask = async (id: number) => {
+    const task = tasks.find(t => t.taskId === id)
     if (!task) return
 
     // Optimistic update - update UI immediately
     const updatedTask = { ...task, completed: !task.completed }
     setTasks((current) =>
-      current.map((t) => t.id === id ? updatedTask : t)
+      current.map((t) => t.taskId === id ? updatedTask : t)
     )
 
     try {
@@ -280,27 +281,27 @@ function App() {
       if (response.success && response.data) {
         // Confirm with server response
         setTasks((current) =>
-          current.map((t) => t.id === id ? response.data! : t)
+          current.map((t) => t.taskId === id ? response.data! : t)
         )
         toast.success(response.data.completed ? "Task selesai!" : "Task dibuka kembali")
       } else {
         // Revert on failure
         setTasks((current) =>
-          current.map((t) => t.id === id ? task : t)
+          current.map((t) => t.taskId === id ? task : t)
         )
         toast.error(response.error || "Gagal mengubah status task")
       }
     } catch (error) {
       // Revert on error
       setTasks((current) =>
-        current.map((t) => t.id === id ? task : t)
+        current.map((t) => t.taskId === id ? task : t)
       )
       toast.error("Terjadi kesalahan")
     }
   }
 
   // Expense CRUD handlers
-  const handleCreateExpense = async (expenseData: Omit<Expense, 'id' | 'createdAt'>) => {
+  const handleCreateExpense = async (expenseData: Omit<Expense, 'expenseId' | 'createdAt'>) => {
     try {
       const response = await apiClient.createExpense(expenseData)
       if (response.success && response.data) {
@@ -314,12 +315,12 @@ function App() {
     }
   }
 
-  const handleUpdateExpense = async (id: string, expenseData: Omit<Expense, 'id' | 'createdAt'>) => {
+  const handleUpdateExpense = async (id: number, expenseData: Omit<Expense, 'expenseId' | 'createdAt'>) => {
     try {
       const response = await apiClient.updateExpense(id, expenseData)
       if (response.success && response.data) {
         setExpenses((current) =>
-          current.map((expense) => expense.id === id ? response.data! : expense)
+          current.map((expense) => expense.expenseId === id ? response.data! : expense)
         )
         toast.success("Pengeluaran berhasil diperbarui")
       } else {
@@ -330,11 +331,11 @@ function App() {
     }
   }
 
-  const handleDeleteExpense = async (id: string) => {
+  const handleDeleteExpense = async (id: number) => {
     try {
       const response = await apiClient.deleteExpense(id)
       if (response.success) {
-        setExpenses((current) => current.filter((expense) => expense.id !== id))
+        setExpenses((current) => current.filter((expense) => expense.expenseId !== id))
         toast.info("Pengeluaran berhasil dihapus")
       } else {
         toast.error(response.error || "Gagal menghapus pengeluaran")
@@ -426,6 +427,15 @@ function App() {
               <CompanyPage
                 settings={companySettings}
                 onUpdateSettings={handleUpdateCompanySettings}
+              />
+            )}
+            
+            {currentPage === "reports" && (
+              <ReportsPage
+                projects={projectsWithProgress}
+                tasks={tasks}
+                users={users}
+                expenses={expenses}
               />
             )}
           </>

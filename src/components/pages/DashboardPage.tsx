@@ -13,15 +13,15 @@ interface DashboardPageProps {
 
 export function DashboardPage({ projects, tasks, users, expenses }: DashboardPageProps) {
   const totalProjects = projects.length
-  const activeProjects = projects.filter(p => p.status === 'On Progress').length
-  const completedProjects = projects.filter(p => p.status === 'Selesai').length
+  const activeProjects = projects.filter(p => p.status === 'in-progress').length
+  const completedProjects = projects.filter(p => p.status === 'completed').length
   const totalTasks = tasks.length
   const totalUsers = users.length
 
-  const totalValue = projects.reduce((sum, p) => sum + (p.value || 0), 0)
-  const valuePerencanaan = projects.filter(p => p.status === 'Perencanaan').reduce((sum, p) => sum + (p.value || 0), 0)
-  const valueOnProgress = projects.filter(p => p.status === 'On Progress').reduce((sum, p) => sum + (p.value || 0), 0)
-  const valueSelesai = projects.filter(p => p.status === 'Selesai').reduce((sum, p) => sum + (p.value || 0), 0)
+  const totalValue = projects.reduce((sum, p) => sum + (Number(p.budget) || 0), 0)
+  const valuePending = projects.filter(p => p.status === 'pending').reduce((sum, p) => sum + (Number(p.budget) || 0), 0)
+  const valueInProgress = projects.filter(p => p.status === 'in-progress').reduce((sum, p) => sum + (Number(p.budget) || 0), 0)
+  const valueCompleted = projects.filter(p => p.status === 'completed').reduce((sum, p) => sum + (Number(p.budget) || 0), 0)
 
   const chartData = [
     {
@@ -30,18 +30,18 @@ export function DashboardPage({ projects, tasks, users, expenses }: DashboardPag
       fill: '#5b7deb'
     },
     {
-      name: 'Perencanaan',
-      value: valuePerencanaan,
+      name: 'Pending',
+      value: valuePending,
       fill: '#94a3b8'
     },
     {
-      name: 'On Progress',
-      value: valueOnProgress,
+      name: 'In Progress',
+      value: valueInProgress,
       fill: '#3b82f6'
     },
     {
-      name: 'Selesai',
-      value: valueSelesai,
+      name: 'Completed',
+      value: valueCompleted,
       fill: '#10b981'
     },
   ]
@@ -151,16 +151,16 @@ export function DashboardPage({ projects, tasks, users, expenses }: DashboardPag
               <p className="text-lg font-bold text-primary">{formatCurrency(totalValue)}</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted/50">
-              <p className="text-sm text-muted-foreground mb-1">Perencanaan</p>
-              <p className="text-lg font-bold text-muted-foreground">{formatCurrency(valuePerencanaan)}</p>
+              <p className="text-sm text-muted-foreground mb-1">Pending</p>
+              <p className="text-lg font-bold text-muted-foreground">{formatCurrency(valuePending)}</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-info/10">
-              <p className="text-sm text-muted-foreground mb-1">On Progress</p>
-              <p className="text-lg font-bold text-info">{formatCurrency(valueOnProgress)}</p>
+              <p className="text-sm text-muted-foreground mb-1">In Progress</p>
+              <p className="text-lg font-bold text-info">{formatCurrency(valueInProgress)}</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-success/10">
-              <p className="text-sm text-muted-foreground mb-1">Selesai</p>
-              <p className="text-lg font-bold text-success">{formatCurrency(valueSelesai)}</p>
+              <p className="text-sm text-muted-foreground mb-1">Completed</p>
+              <p className="text-lg font-bold text-success">{formatCurrency(valueCompleted)}</p>
             </div>
           </div>
         </CardContent>
@@ -180,12 +180,12 @@ export function DashboardPage({ projects, tasks, users, expenses }: DashboardPag
               <div className="space-y-3">
                 {projects.slice(0, 5).map((project) => (
                   <div
-                    key={project.id}
+                    key={project.projectId}
                     className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{project.name}</p>
-                      <p className="text-sm text-muted-foreground truncate">{project.customer}</p>
+                      <p className="text-sm text-muted-foreground truncate">{project.description}</p>
                     </div>
                     <div className="flex items-center gap-3 ml-4">
                       <div className="text-right">
@@ -209,21 +209,21 @@ export function DashboardPage({ projects, tasks, users, expenses }: DashboardPag
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-muted-foreground"></div>
-                  <span className="text-sm">Perencanaan</span>
+                  <span className="text-sm">Pending</span>
                 </div>
-                <span className="font-semibold">{projects.filter(p => p.status === 'Perencanaan').length}</span>
+                <span className="font-semibold">{projects.filter(p => p.status === 'pending').length}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-info"></div>
-                  <span className="text-sm">On Progress</span>
+                  <span className="text-sm">In Progress</span>
                 </div>
                 <span className="font-semibold">{activeProjects}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-success"></div>
-                  <span className="text-sm">Selesai</span>
+                  <span className="text-sm">Completed</span>
                 </div>
                 <span className="font-semibold">{completedProjects}</span>
               </div>

@@ -8,9 +8,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 interface UsersPageProps {
   users: User[]
-  onCreateUser: (user: Omit<User, 'id' | 'createdAt'>) => void
-  onUpdateUser: (id: string, user: Omit<User, 'id' | 'createdAt'>) => void
-  onDeleteUser: (id: string) => void
+  onCreateUser: (user: Omit<User, 'userId' | 'createdAt'>) => void
+  onUpdateUser: (id: number, user: Omit<User, 'userId' | 'createdAt'>) => void
+  onDeleteUser: (id: number) => void
 }
 
 export function UsersPage({ users, onCreateUser, onUpdateUser, onDeleteUser }: UsersPageProps) {
@@ -27,9 +27,9 @@ export function UsersPage({ users, onCreateUser, onUpdateUser, onDeleteUser }: U
     setDialogOpen(true)
   }
 
-  const handleSave = (userData: Omit<User, 'id' | 'createdAt'>) => {
+  const handleSave = (userData: Omit<User, 'userId' | 'createdAt'>) => {
     if (editingUser) {
-      onUpdateUser(editingUser.id, userData)
+      onUpdateUser(editingUser.userId, userData)
     } else {
       onCreateUser(userData)
     }
@@ -78,7 +78,7 @@ export function UsersPage({ users, onCreateUser, onUpdateUser, onDeleteUser }: U
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {users.map((user) => (
-            <Card key={user.id} className="hover:shadow-md transition-shadow">
+            <Card key={user.userId} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center space-y-4">
                   <Avatar className="h-20 w-20">
@@ -104,7 +104,7 @@ export function UsersPage({ users, onCreateUser, onUpdateUser, onDeleteUser }: U
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onDeleteUser(user.id)}
+                      onClick={() => onDeleteUser(user.userId)}
                       className="gap-1 text-destructive hover:text-destructive"
                     >
                       <Trash size={14} />

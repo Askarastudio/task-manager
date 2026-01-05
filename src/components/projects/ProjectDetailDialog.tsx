@@ -19,13 +19,13 @@ interface ProjectDetailDialogProps {
   tasks: Task[]
   expenses: Expense[]
   users: User[]
-  onCreateTask: (task: Omit<Task, 'id' | 'createdAt'>) => void
-  onUpdateTask: (id: string, task: Omit<Task, 'id' | 'createdAt'>) => void
-  onDeleteTask: (id: string) => void
-  onToggleTask: (id: string) => void
-  onCreateExpense: (expense: Omit<Expense, 'id' | 'createdAt'>) => void
-  onUpdateExpense: (id: string, expense: Omit<Expense, 'id' | 'createdAt'>) => void
-  onDeleteExpense: (id: string) => void
+  onCreateTask: (task: Omit<Task, 'taskId' | 'createdAt'>) => void
+  onUpdateTask: (id: number, task: Omit<Task, 'taskId' | 'createdAt'>) => void
+  onDeleteTask: (id: number) => void
+  onToggleTask: (id: number) => void
+  onCreateExpense: (expense: Omit<Expense, 'expenseId' | 'createdAt'>) => void
+  onUpdateExpense: (id: number, expense: Omit<Expense, 'expenseId' | 'createdAt'>) => void
+  onDeleteExpense: (id: number) => void
 }
 
 export function ProjectDetailDialog({
@@ -58,11 +58,11 @@ export function ProjectDetailDialog({
     setTaskDialogOpen(true)
   }
 
-  const handleSaveTask = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
+  const handleSaveTask = (taskData: Omit<Task, 'taskId' | 'createdAt'>) => {
     if (editingTask) {
-      onUpdateTask(editingTask.id, taskData)
+      onUpdateTask(editingTask.taskId, taskData)
     } else {
-      onCreateTask({ ...taskData, projectId: project.id })
+      onCreateTask({ ...taskData, projectId: project.projectId })
     }
     setTaskDialogOpen(false)
     setEditingTask(null)
@@ -78,11 +78,11 @@ export function ProjectDetailDialog({
     setExpenseDialogOpen(true)
   }
 
-  const handleSaveExpense = (expenseData: Omit<Expense, 'id' | 'createdAt'>) => {
+  const handleSaveExpense = (expenseData: Omit<Expense, 'expenseId' | 'createdAt'>) => {
     if (editingExpense) {
-      onUpdateExpense(editingExpense.id, expenseData)
+      onUpdateExpense(editingExpense.expenseId, expenseData)
     } else {
-      onCreateExpense({ ...expenseData, projectId: project.id })
+      onCreateExpense({ ...expenseData, projectId: project.projectId })
     }
     setExpenseDialogOpen(false)
     setEditingExpense(null)
@@ -97,11 +97,9 @@ export function ProjectDetailDialog({
     'other': 'Lainnya'
   }
 
-  const getUserNames = (userIds: string[]) => {
-    return userIds
-      .map(id => users.find(u => u.id === id)?.name)
-      .filter(Boolean)
-      .join(', ')
+  const getUserNames = (userId?: number) => {
+    if (!userId) return 'Tidak ada'
+    return users.find(u => u.userId === userId)?.name || 'Tidak ada'
   }
 
   return (
@@ -111,7 +109,7 @@ export function ProjectDetailDialog({
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <DialogTitle className="text-2xl mb-2">{project.name}</DialogTitle>
-              <p className="text-muted-foreground">{project.customer}</p>
+              <p className="text-muted-foreground">{project.description}</p>
             </div>
             <Badge className={getStatusColor(project.status)} variant="outline">
               {project.status}
@@ -130,8 +128,8 @@ export function ProjectDetailDialog({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Nilai Proyek</p>
-                  <p className="text-2xl font-bold">{formatCurrency(project.value)}</p>
+                  <p className="text-sm text-muted-foreground mb-1">Anggaran Proyek</p>
+                  <p className="text-2xl font-bold">{formatCurrency(project.budget || 0)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Total Pengeluaran</p>
@@ -139,8 +137,8 @@ export function ProjectDetailDialog({
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Sisa Budget</p>
-                  <p className={`text-2xl font-bold ${project.value - totalExpenses < 0 ? 'text-destructive' : 'text-success'}`}>
-                    {formatCurrency(project.value - totalExpenses)}
+                  <p className={`text-2xl font-bold ${(project.budget || 0) - totalExpenses < 0 ? 'text-destructive' : 'text-success'}`}>
+                    {formatCurrency((project.budget || 0) - totalExpenses)}
                   </p>
                 </div>
                 <div>
@@ -200,14 +198,14 @@ export function ProjectDetailDialog({
               <div className="space-y-2">
                 {tasks.map((task) => (
                   <div
-                    key={task.id}
+                    key={task.taskId}
                     className={`flex items-start gap-3 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors group ${
                       task.completed ? 'bg-muted/20' : ''
                     }`}
                   >
                     <Checkbox
                       checked={task.completed}
-                      onCheckedChange={() => onToggleTask(task.id)}
+                      onCheckedChange={() => onToggleTask(task.taskId)}
                       className="mt-1"
                     />
                     <div className="flex-1 min-w-0">
@@ -228,11 +226,11 @@ export function ProjectDetailDialog({
                           {task.description}
                         </p>
                       )}
-                      {task.assignedUserIds.length > 0 && (
+                      {task.assignedTo && (
                         <div className="flex items-center gap-2 text-sm">
                           <UserCircle size={16} className="text-muted-foreground" />
                           <span className="text-muted-foreground">
-                            {getUserNames(task.assignedUserIds) || 'Tidak ada'}
+                            {getUserNames(task.assignedTo)}
                           </span>
                         </div>
                       )}
@@ -248,7 +246,7 @@ export function ProjectDetailDialog({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onDeleteTask(task.id)}
+                        onClick={() => onDeleteTask(task.taskId)}
                         className="text-destructive hover:text-destructive"
                       >
                         <Trash size={16} />
@@ -289,7 +287,7 @@ export function ProjectDetailDialog({
               <div className="space-y-2">
                 {expenses.map((expense) => (
                   <div
-                    key={expense.id}
+                    key={expense.expenseId}
                     className="flex items-start gap-3 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors group"
                   >
                     <div className="flex-1 min-w-0">
@@ -317,7 +315,7 @@ export function ProjectDetailDialog({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => onDeleteExpense(expense.id)}
+                        onClick={() => onDeleteExpense(expense.expenseId)}
                         className="text-destructive hover:text-destructive"
                       >
                         <Trash size={16} />
