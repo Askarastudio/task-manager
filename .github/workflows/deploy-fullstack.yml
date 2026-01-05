@@ -1,0 +1,118 @@
+name: Deploy Full Stack (Frontend + Backend)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "deployment"
+  cancel-in-progress: false
+
+jobs:
+  # Build dan Deploy Frontend ke GitHub Pages
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build Frontend
+        run: npm run build
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy-frontend:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build-frontend
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # Deploy Backend ke VPS
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Create deployment package
+        run: |
+          cd backend-api
+          npm ci --production
+          tar -czf backend-deploy.tar.gz \
+            server.js \
+            db.js \
+            package.json \
+            package-lock.json \
+            routes/ \
+            middleware/ \
+            migrations/ \
+            node_modules/
+
+      - name: Deploy to VPS via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 72.62.120.94
+          username: ikuhub-apiproyek
+          password: ${{ secrets.VPS_PASSWORD }}
+          source: "backend-api/backend-deploy.tar.gz"
+          target: "/home/ikuhub-apiproyek/"
+          strip_components: 1
+
+      - name: Extract and Restart Backend
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 72.62.120.94
+          username: ikuhub-apiproyek
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            cd /home/ikuhub-apiproyek/htdocs/apiproyek.ikuhub.com
+            
+            # Backup existing if needed
+            if [ -f "server.js" ]; then
+              echo "Creating backup..."
+              tar -czf backup-$(date +%Y%m%d-%H%M%S).tar.gz server.js routes/ middleware/ || true
+            fi
+            
+            # Extract new deployment
+            tar -xzf /home/ikuhub-apiproyek/backend-deploy.tar.gz -C /home/ikuhub-apiproyek/htdocs/apiproyek.ikuhub.com/
+            
+            # Remove deployment package
+            rm /home/ikuhub-apiproyek/backend-deploy.tar.gz
+            
+            # Restart PM2
+            echo "Restarting PM2..."
+            pm2 restart ikuhub-api || pm2 start server.js --name ikuhub-api --env production
+            pm2 save
+            
+            echo "✅ Backend deployment completed!"
+            echo "📊 PM2 Status:"
+            pm2 list

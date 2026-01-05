@@ -1,0 +1,54 @@
+name: Deploy Backend to VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend-api/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd backend-api
+          npm ci --production
+
+      - name: Deploy to VPS via SFTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: 72.62.120.94
+          username: ikuhub-apiproyek
+          password: ${{ secrets.VPS_PASSWORD }}
+          local-dir: ./backend-api/
+          server-dir: /home/ikuhub-apiproyek/htdocs/apiproyek.ikuhub.com/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.env.example
+            **/backup-db.sh
+            **/restore-db.sh
+
+      - name: Restart PM2 via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 72.62.120.94
+          username: ikuhub-apiproyek
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            cd /home/ikuhub-apiproyek/htdocs/apiproyek.ikuhub.com
+            npm install --production
+            pm2 restart ikuhub-api || pm2 start server.js --name ikuhub-api
+            pm2 save
