@@ -12,15 +12,17 @@ router.get('/', async (req, res) => {
       'SELECT * FROM projects ORDER BY created_at DESC'
     );
     
-    // Convert snake_case to camelCase
+    // Convert snake_case to camelCase and map to frontend expected format
     const projectsFormatted = projects.map(p => ({
-      id: p.id,
+      projectId: p.id,
       name: p.name,
-      customer: p.customer,
-      value: Number(p.value) || 0,
-      status: p.status || 'Perencanaan',
-      description: p.description,
-      createdAt: p.created_at
+      description: p.description || '',
+      budget: Number(p.value) || 0,
+      status: p.status || 'pending',
+      startDate: p.created_at || Date.now(),
+      endDate: p.created_at ? p.created_at + (90 * 24 * 60 * 60 * 1000) : Date.now(),
+      teamMembers: [],
+      createdAt: p.created_at || Date.now()
     }));
     
     console.log('Projects API response:', projectsFormatted);
@@ -34,18 +36,29 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { name, customer, value, description } = req.body;
-    const id = `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const { name, description, budget, status } = req.body;
+    const projectId = `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const createdAt = Date.now();
+    const statusValue = status || 'pending';
 
     await db.query(
-      'INSERT INTO projects (id, name, customer, value, description, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-      [id, name, customer, value, description, createdAt]
+      'INSERT INTO projects (id, name, value, description, status, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [projectId, name, budget || 0, description || '', statusValue, createdAt]
     );
 
     res.json({ 
       success: true, 
-      data: { id, name, customer, value, description, createdAt } 
+      data: { 
+        projectId, 
+        name, 
+        description: description || '',
+        budget: Number(budget) || 0, 
+        status: statusValue,
+        startDate: createdAt,
+        endDate: createdAt + (90 * 24 * 60 * 60 * 1000),
+        teamMembers: [],
+        createdAt 
+      } 
     });
   } catch (error) {
     console.error('Create project error:', error);
@@ -56,18 +69,31 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, customer, value, description } = req.body;
+    const { name, description, budget, status } = req.body;
 
     await db.query(
-      'UPDATE projects SET name = ?, customer = ?, value = ?, description = ? WHERE id = ?',
-      [name, customer, value, description, id]
+      'UPDATE projects SET name = ?, value = ?, description = ?, status = ? WHERE id = ?',
+      [name, budget || 0, description || '', status || 'pending', id]
     );
 
     // Get createdAt from existing record
     const [existing] = await db.query('SELECT created_at FROM projects WHERE id = ?', [id]);
     const createdAt = existing[0]?.created_at || Date.now();
 
-    res.json({ success: true, data: { id, name, customer, value, description, createdAt } });
+    res.json({ 
+      success: true, 
+      data: { 
+        projectId: id, 
+        name, 
+        description: description || '',
+        budget: Number(budget) || 0,
+        status: status || 'pending',
+        startDate: createdAt,
+        endDate: createdAt + (90 * 24 * 60 * 60 * 1000),
+        teamMembers: [],
+        createdAt 
+      } 
+    });
   } catch (error) {
     console.error('Update project error:', error);
     res.status(500).json({ success: false, error: 'Gagal update proyek' });

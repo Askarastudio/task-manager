@@ -35,18 +35,20 @@ export function getStatusColor(status: ProjectStatus): string {
   }
 }
 
-export function formatCurrency(value: number): string {
+export function formatCurrency(value: number | undefined | null): string {
+  const numValue = Number(value) || 0;
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
     minimumFractionDigits: 0,
-  }).format(value)
+  }).format(numValue)
 }
 
-export function formatDate(timestamp: number): string {
+export function formatDate(timestamp: number | undefined | null): string {
+  const time = timestamp || Date.now();
   return new Intl.DateTimeFormat('id-ID', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
-  }).format(timestamp)
+  }).format(time)
 }
