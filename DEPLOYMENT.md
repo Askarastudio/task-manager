@@ -4,7 +4,7 @@
 
 Aplikasi IkuHub Proyeksi terdiri dari 2 bagian:
 1. **Frontend** (React + Vite) - Deploy ke proyek.ikuhub.com
-2. **Backend API** (Node.js + Express + MySQL) - Deploy ke api.proyek.ikuhub.com
+2. **Backend API** (Node.js + Express + MySQL) - Deploy ke apiproyek.ikuhub.com
 
 ---
 
@@ -50,7 +50,7 @@ FLUSH PRIVILEGES;
    ```
 6. Deploy!
 7. Railway akan memberikan URL: `xxx.railway.app`
-8. Setup custom domain `api.proyek.ikuhub.com`
+8. Setup custom domain `apiproyek.ikuhub.com`
 
 **Option B: Deploy ke VPS (Manual)**
 
@@ -85,14 +85,14 @@ pm2 save
 pm2 startup
 
 # Setup Nginx reverse proxy
-sudo nano /etc/nginx/sites-available/api.proyek.ikuhub.com
+sudo nano /etc/nginx/sites-available/apiproyek.ikuhub.com
 ```
 
 **Nginx config:**
 ```nginx
 server {
     listen 80;
-    server_name api.proyek.ikuhub.com;
+    server_name apiproyek.ikuhub.com;
 
     location / {
         proxy_pass http://localhost:3000;
@@ -107,13 +107,13 @@ server {
 
 ```bash
 # Enable site dan restart Nginx
-sudo ln -s /etc/nginx/sites-available/api.proyek.ikuhub.com /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/apiproyek.ikuhub.com /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 
 # Setup SSL dengan Certbot
 sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d api.proyek.ikuhub.com
+sudo certbot --nginx -d apiproyek.ikuhub.com
 ```
 
 ### Step 3: Deploy Frontend
@@ -122,7 +122,7 @@ sudo certbot --nginx -d api.proyek.ikuhub.com
 
 Buat file `.env` di root project:
 ```env
-VITE_API_BASE_URL=https://api.proyek.ikuhub.com
+VITE_API_BASE_URL=https://apiproyek.ikuhub.com
 VITE_APP_MODE=production
 ```
 
@@ -182,13 +182,13 @@ Di panel domain Anda (Cloudflare, Namecheap, dll):
 ```
 Type    Name                Value                           TTL
 A       proyek.ikuhub.com   [IP Server Frontend]            Auto
-A       api.proyek.ikuhub.com [IP Server Backend]          Auto
+A       apiproyek.ikuhub.com [IP Server Backend]          Auto
 ```
 
 Atau jika menggunakan CDN:
 ```
 CNAME   proyek.ikuhub.com   your-app.netlify.app           Auto
-CNAME   api.proyek.ikuhub.com  xxx.railway.app             Auto
+CNAME   apiproyek.ikuhub.com  xxx.railway.app             Auto
 ```
 
 ---
@@ -229,10 +229,10 @@ npm run build
 ### Test Backend API
 ```bash
 # Health check
-curl https://api.proyek.ikuhub.com/
+curl https://apiproyek.ikuhub.com/
 
 # Test login
-curl -X POST https://api.proyek.ikuhub.com/auth/login \
+curl -X POST https://apiproyek.ikuhub.com/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@ikuhub.com","password":"Ikuhub@2025"}'
 ```

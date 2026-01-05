@@ -10,10 +10,10 @@ import { toast } from "sonner"
 
 interface CompanyPageProps {
   settings: CompanySettings
-  onSave: (settings: CompanySettings) => void
+  onUpdateSettings: (settings: CompanySettings) => void
 }
 
-export function CompanyPage({ settings, onSave }: CompanyPageProps) {
+export function CompanyPage({ settings, onUpdateSettings }: CompanyPageProps) {
   const [name, setName] = useState(settings.name)
   const [address, setAddress] = useState(settings.address)
   const [phone, setPhone] = useState(settings.phone)
@@ -32,7 +32,7 @@ export function CompanyPage({ settings, onSave }: CompanyPageProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSave({
+    onUpdateSettings({
       name,
       address,
       phone,

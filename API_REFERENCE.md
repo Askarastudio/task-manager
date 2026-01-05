@@ -1,6 +1,6 @@
 # API Reference - IkuHub Proyeksi
 
-Base URL: `https://api.proyek.ikuhub.com` (production) atau `http://localhost:3000` (development)
+Base URL: `https://apiproyek.ikuhub.com` (production) atau `http://localhost:3000` (development)
 
 ## Authentication
 
@@ -553,7 +553,7 @@ curl -X POST http://localhost:3000/projects \
 
 1. Import collection dari dokumentasi ini
 2. Set environment variable:
-   - `base_url`: `http://localhost:3000` or `https://api.proyek.ikuhub.com`
+   - `base_url`: `http://localhost:3000` or `https://apiproyek.ikuhub.com`
    - `token`: JWT token dari login response
 
 3. Login dulu untuk mendapatkan token
@@ -575,8 +575,8 @@ Untuk production, pertimbangkan implementasi rate limiting:
 Current API version: `v1`
 
 Future versions akan menggunakan URL prefix:
-- `https://api.proyek.ikuhub.com/v1/...`
-- `https://api.proyek.ikuhub.com/v2/...`
+- `https://apiproyek.ikuhub.com/v1/...`
+- `https://apiproyek.ikuhub.com/v2/...`
 
 ---
 

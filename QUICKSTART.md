@@ -112,7 +112,7 @@ npm run dev
 npm install -g netlify-cli
 
 # Update .env dengan production URL
-echo "VITE_API_BASE_URL=https://api.proyek.ikuhub.com" > .env
+echo "VITE_API_BASE_URL=https://apiproyek.ikuhub.com" > .env
 echo "VITE_APP_MODE=production" >> .env
 
 # Build & deploy
@@ -128,7 +128,7 @@ netlify deploy --prod --dir=dist
 Di DNS provider (Cloudflare, Namecheap, dll):
 ```
 CNAME  proyek.ikuhub.com       → your-app.netlify.app
-CNAME  api.proyek.ikuhub.com   → xxx.railway.app
+CNAME  apiproyek.ikuhub.com   → xxx.railway.app
 ```
 
 **🎊 Done! Aplikasi live di proyek.ikuhub.com**

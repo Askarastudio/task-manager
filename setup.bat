@@ -15,7 +15,7 @@ if not exist .env (
     echo ℹ️  To enable production mode with database:
     echo    1. Setup backend API (see backend-api/README.md^)
     echo    2. Update .env with your API URL:
-    echo       VITE_API_BASE_URL=https://api.proyek.ikuhub.com
+    echo       VITE_API_BASE_URL=https://apiproyek.ikuhub.com
     echo       VITE_APP_MODE=production
     echo.
 ) else (

@@ -17,10 +17,13 @@ router.get('/', async (req, res) => {
       id: p.id,
       name: p.name,
       customer: p.customer,
-      value: p.value,
+      value: Number(p.value) || 0,
+      status: p.status || 'Perencanaan',
       description: p.description,
       createdAt: p.created_at
     }));
+    
+    console.log('Projects API response:', projectsFormatted);
     
     res.json({ success: true, data: projectsFormatted });
   } catch (error) {

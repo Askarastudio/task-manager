@@ -30,37 +30,12 @@ router.get('/', async (req, res) => {
     // Convert snake_case to camelCase for frontend
     const tasksWithParsedUsers = tasks.map(task => {
       console.log('Processing task:', task.id);
-      
-      let assignedUserIds = [];
-      try {
-        if (task.assigned_user_ids) {
-          const rawValue = task.assigned_user_ids;
-          console.log('Raw assigned_user_ids:', rawValue);
-          
-          // If it's already an array string like '["user-1"]'
-          if (typeof rawValue === 'string' && rawValue.startsWith('[')) {
-            assignedUserIds = JSON.parse(rawValue);
-          } 
-          // If it's a single string like '"user-123"' or 'user-123'
-          else if (typeof rawValue === 'string') {
-            const cleaned = rawValue.replace(/^["']|["']$/g, ''); // Remove quotes
-            assignedUserIds = cleaned ? [cleaned] : [];
-          }
-          else if (Array.isArray(rawValue)) {
-            assignedUserIds = rawValue;
-          }
-        }
-      } catch (e) {
-        console.error('Failed to parse assigned_user_ids:', task.assigned_user_ids, e.message);
-        assignedUserIds = [];
-      }
-      
       return {
         id: task.id,
         projectId: task.project_id,
         title: task.title,
         description: task.description,
-        assignedUserIds: assignedUserIds,
+        assignedUserIds: JSON.parse(task.assigned_user_ids || '[]'),
         completed: !!task.completed,
         createdAt: task.created_at
       };

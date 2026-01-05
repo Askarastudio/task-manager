@@ -1,0 +1,321 @@
+import { useState, useEffect, useMemo } from "react"
+import { Toaster, toast } from "sonner"
+import { 
+  User, 
+  Project, 
+  Task, 
+  Expense,
+  CompanySettings, 
+  AuthSession,
+  ProjectWithProgress 
+} from "@/lib/types"
+import { calculateProjectProgress } from "@/lib/utils"
+import { apiClient } from "@/lib/api"
+import { LoginPage } from "@/components/auth/LoginPage"
+import { Navbar } from "@/components/layout/Navbar"
+import { DashboardPage } from "@/components/pages/DashboardPage"
+import { ProjectsPage } from "@/components/pages/ProjectsPage"
+import { UsersPage } from "@/components/pages/UsersPage"
+import { CompanyPage } from "@/components/pages/CompanyPage"
+
+function App() {
+  const [session, setSession] = useState<AuthSession | null>(() => {
+    const token = localStorage.getItem('auth-token')
+    const sessionData = localStorage.getItem('auth-session')
+    if (token && sessionData) {
+      return JSON.parse(sessionData)
+    }
+    return null
+  })
+  const [users, setUsers] = useState<User[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [expenses, setExpenses] = useState<Expense[]>([])
+  const [companySettings, setCompanySettings] = useState<CompanySettings>({
+    name: "IkuHub Proyeksi",
+    address: "",
+    phone: "",
+    email: "",
+  })
+  const [currentPage, setCurrentPage] = useState("dashboard")
+  const [loading, setLoading] = useState(false)
+
+  // Fetch data from API when logged in
+  useEffect(() => {
+    if (!session) return
+
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        const [usersRes, projectsRes, tasksRes, expensesRes, settingsRes] = await Promise.all([
+          apiClient.getUsers(),
+          apiClient.getProjects(),
+          apiClient.getTasks(),
+          apiClient.getExpenses(),
+          apiClient.getCompanySettings()
+        ])
+
+        if (usersRes.success && usersRes.data) setUsers(usersRes.data)
+        if (projectsRes.success && projectsRes.data) setProjects(projectsRes.data)
+        if (tasksRes.success && tasksRes.data) setTasks(tasksRes.data)
+        if (expensesRes.success && expensesRes.data) setExpenses(expensesRes.data)
+        if (settingsRes.success && settingsRes.data) setCompanySettings(settingsRes.data)
+      } catch (error) {
+        console.error('Failed to fetch data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [session])
+
+  const projectsWithProgress: ProjectWithProgress[] = useMemo(() => {
+    return (projects || []).map(project => 
+      calculateProjectProgress(project, tasks || [])
+    ).sort((a, b) => b.createdAt - a.createdAt)
+  }, [projects, tasks])
+
+  const handleLogin = async (email: string, password: string) => {
+    setLoading(true)
+    try {
+      const response = await apiClient.login(email, password)
+      
+      if (response.success && response.data) {
+        const { token, user } = response.data
+        const newSession: AuthSession = {
+          userId: user.userId,
+          email: user.email,
+          name: user.name,
+          loginAt: Date.now(),
+        }
+        
+        apiClient.setToken(token)
+        localStorage.setItem('auth-session', JSON.stringify(newSession))
+        setSession(newSession)
+        toast.success(`Selamat datang, ${user.name}!`)
+      } else {
+        toast.error(response.error || "Login gagal")
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      toast.error("Terjadi kesalahan saat login")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleLogout = () => {
+    apiClient.setToken(null)
+    localStorage.removeItem('auth-session')
+    setSession(null)
+    setUsers([])
+    setProjects([])
+    setTasks([])
+    setExpenses([])
+    setCurrentPage("dashboard")
+    toast.info("Anda telah keluar")
+  }
+
+  const handleCreateUser = async (userData: Omit<User, 'id' | 'createdAt'>) => {
+    try {
+      const response = await apiClient.createUser(userData)
+      if (response.success && response.data) {
+        setUsers((current) => [response.data!, ...current])
+        toast.success("User berhasil ditambahkan")
+      } else {
+        toast.error(response.error || "Gagal menambahkan user")
+      }
+    } catch (error) {
+      toast.error("Terjadi kesalahan")
+    }
+  }
+
+  const handleUpdateUser = async (id: string, userData: Omit<User, 'id' | 'createdAt'>) => {
+    try {
+      const response = await apiClient.updateUser(id, userData)
+      if (response.success && response.data) {
+        setUsers((current) =>
+          current.map((user) => user.id === id ? response.data! : user)
+        )
+        toast.success("User berhasil diperbarui")
+      } else {
+        toast.error(response.error || "Gagal memperbarui user")
+      }
+    } catch (error) {
+      toast.error("Terjadi kesalahan")
+    }
+  }
+
+  const handleDeleteUser = async (id: string) => {
+    try {
+      const response = await apiClient.deleteUser(id)
+      if (response.success) {
+        setUsers((current) => current.filter((user) => user.id !== id))
+        toast.info("User berhasil dihapus")
+      } else {
+        toast.error(response.error || "Gagal menghapus user")
+      }
+    } catch (error) {
+      toast.error("Terjadi kesalahan")
+    }
+  }
+
+  const handleCreateProject = (projectData: Omit<Project, 'id' | 'createdAt'>) => {
+    const newProject: Project = {
+      id: `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      ...projectData,
+      createdAt: Date.now(),
+    }
+    setProjects((current) => [newProject, ...(current || [])])
+    toast.success("Proyek berhasil ditambahkan")
+  }
+
+  const handleUpdateProject = (id: string, projectData: Omit<Project, 'id' | 'createdAt'>) => {
+    setProjects((current) =>
+      (current || []).map((project) =>
+        project.id === id ? { ...project, ...projectData } : project
+      )
+    )
+    toast.success("Proyek berhasil diperbarui")
+  }
+
+  const handleDeleteProject = (id: string) => {
+    setProjects((current) => (current || []).filter((project) => project.id !== id))
+    setTasks((current) => (current || []).filter((task) => task.projectId !== id))
+    toast.info("Proyek dan semua task terkait berhasil dihapus")
+  }
+
+  const handleCreateTask = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
+    const newTask: Task = {
+      id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      ...taskData,
+      createdAt: Date.now(),
+    }
+    setTasks((current) => [newTask, ...(current || [])])
+    toast.success("Task berhasil ditambahkan")
+  }
+
+  const handleUpdateTask = (id: string, taskData: Omit<Task, 'id' | 'createdAt'>) => {
+    setTasks((current) =>
+      (current || []).map((task) =>
+        task.id === id ? { ...task, ...taskData } : task
+      )
+    )
+    toast.success("Task berhasil diperbarui")
+  }
+
+  const handleDeleteTask = (id: string) => {
+    setTasks((current) => (current || []).filter((task) => task.id !== id))
+    toast.info("Task berhasil dihapus")
+  }
+
+  const handleToggleTask = (id: string) => {
+    setTasks((current) =>
+      (current || []).map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    )
+  }
+
+  const handleSaveCompanySettings = (settings: CompanySettings) => {
+    setCompanySettings(settings)
+  }
+
+  const handleCreateExpense = (expenseData: Omit<Expense, 'id' | 'createdAt'>) => {
+    const newExpense: Expense = {
+      id: `expense-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      ...expenseData,
+      createdAt: Date.now(),
+    }
+    setExpenses((current) => [newExpense, ...(current || [])])
+    toast.success("Pengeluaran berhasil ditambahkan")
+  }
+
+  const handleUpdateExpense = (id: string, expenseData: Omit<Expense, 'id' | 'createdAt'>) => {
+    setExpenses((current) =>
+      (current || []).map((expense) =>
+        expense.id === id ? { ...expense, ...expenseData } : expense
+      )
+    )
+    toast.success("Pengeluaran berhasil diperbarui")
+  }
+
+  const handleDeleteExpense = (id: string) => {
+    setExpenses((current) => (current || []).filter((expense) => expense.id !== id))
+    toast.info("Pengeluaran berhasil dihapus")
+  }
+
+  if (!session) {
+    return (
+      <>
+        <Toaster position="top-center" />
+        <LoginPage onLogin={handleLogin} />
+      </>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Toaster position="top-center" />
+      <Navbar
+        currentPage={currentPage}
+        onNavigate={setCurrentPage}
+        onLogout={handleLogout}
+        companyLogo={companySettings?.logo}
+      />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {currentPage === 'dashboard' && (
+          <DashboardPage
+            projects={projectsWithProgress}
+            totalUsers={(users || []).length}
+            onNavigate={setCurrentPage}
+          />
+        )}
+        
+        {currentPage === 'projects' && (
+          <ProjectsPage
+            projects={projectsWithProgress}
+            tasks={tasks || []}
+            users={users || []}
+            expenses={expenses || []}
+            onCreateProject={handleCreateProject}
+            onUpdateProject={handleUpdateProject}
+            onDeleteProject={handleDeleteProject}
+            onCreateTask={handleCreateTask}
+            onUpdateTask={handleUpdateTask}
+            onDeleteTask={handleDeleteTask}
+            onToggleTask={handleToggleTask}
+            onCreateExpense={handleCreateExpense}
+            onUpdateExpense={handleUpdateExpense}
+            onDeleteExpense={handleDeleteExpense}
+          />
+        )}
+        
+        {currentPage === 'users' && (
+          <UsersPage
+            users={users || []}
+            onCreateUser={handleCreateUser}
+            onUpdateUser={handleUpdateUser}
+            onDeleteUser={handleDeleteUser}
+          />
+        )}
+        
+        {currentPage === 'company' && (
+          <CompanyPage
+            settings={companySettings || {
+              name: "IkuHub Proyeksi",
+              address: "",
+              phone: "",
+              email: "",
+            }}
+            onSave={handleSaveCompanySettings}
+          />
+        )}
+      </main>
+    </div>
+  )
+}
+
+export default App

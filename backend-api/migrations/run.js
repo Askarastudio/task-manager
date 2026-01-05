@@ -63,7 +63,23 @@ const migrations = [
 async function runMigrations() {
   let connection;
   try {
-    connection = await mysql.createConnection(process.env.DATABASE_URL);
+    // Parse DATABASE_URL: mysql://user:pass@host:port/database
+    const dbUrl = process.env.DATABASE_URL;
+    const match = dbUrl.match(/mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
+    
+    if (!match) {
+      throw new Error('Invalid DATABASE_URL format. Expected: mysql://user:pass@host:port/database');
+    }
+    
+    const dbConfig = {
+      host: match[3],
+      user: match[1],
+      password: match[2],
+      port: parseInt(match[4]),
+      database: match[5]
+    };
+    
+    connection = await mysql.createConnection(dbConfig);
     
     console.log('🔄 Running database migrations...');
     
